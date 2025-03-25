@@ -1,6 +1,10 @@
-import { getAccount, signup } from "../src/signup";
+import axios from "axios";
 
-describe("signup", () => {
+axios.defaults.validateStatus = function () {
+  return true;
+};
+
+describe("api", () => {
   test("should create a new passenger account", async () => {
     const input = {
       name: "john doe",
@@ -9,9 +13,17 @@ describe("signup", () => {
       isPassenger: true,
       password: "0293490239043",
     };
-    const outputSignup = await signup(input);
+
+    const responseSignup = await axios.post(
+      "http://localhost:3000/signup",
+      input
+    );
+    const outputSignup = responseSignup.data;
     expect(outputSignup.accountId).toBeDefined();
-    const outputGetAccount = await getAccount(outputSignup.accountId);
+    const responseGetAccount = await axios.get(
+      `http://localhost:3000/accounts/${outputSignup.accountId}`
+    );
+    const outputGetAccount = responseGetAccount.data;
     expect(outputGetAccount).toEqual({
       account_id: outputSignup.accountId,
       name: input.name,
@@ -32,9 +44,13 @@ describe("signup", () => {
       isPassenger: true,
       password: "0293490239043",
     };
-    await expect(() => signup(input)).rejects.toThrow(
-      new Error("Invalid name")
+
+    const responseSignup = await axios.post(
+      "http://localhost:3000/signup",
+      input
     );
+    expect(responseSignup.status).toBe(422);
+    expect(responseSignup.data.message).toBe("Invalid name");
   });
 
   test("should not create a new passenger account with invalid email", async () => {
@@ -45,9 +61,13 @@ describe("signup", () => {
       isPassenger: true,
       password: "0293490239043",
     };
-    await expect(() => signup(input)).rejects.toThrow(
-      new Error("Invalid email")
+
+    const responseSignup = await axios.post(
+      "http://localhost:3000/signup",
+      input
     );
+    expect(responseSignup.status).toBe(422);
+    expect(responseSignup.data.message).toBe("Invalid email");
   });
 
   test("should not create a new passenger account with invalid CPF", async () => {
@@ -59,7 +79,12 @@ describe("signup", () => {
       password: "0293490239043",
     };
 
-    await expect(() => signup(input)).rejects.toThrow(new Error("Invalid cpf"));
+    const responseSignup = await axios.post(
+      "http://localhost:3000/signup",
+      input
+    );
+    expect(responseSignup.status).toBe(422);
+    expect(responseSignup.data.message).toBe("Invalid cpf");
   });
 
   test("should not create a new passenger when user already exists", async () => {
@@ -70,9 +95,13 @@ describe("signup", () => {
       isPassenger: true,
       password: "0293490239043",
     };
-    await expect(() => signup(input)).rejects.toThrow(
-      new Error("Duplicated account")
+
+    const responseSignup = await axios.post(
+      "http://localhost:3000/signup",
+      input
     );
+    expect(responseSignup.status).toBe(422);
+    expect(responseSignup.data.message).toBe("Duplicated account");
   });
 
   test("should create a new driver account", async () => {
@@ -85,10 +114,17 @@ describe("signup", () => {
       carPlate: "ABC1234",
       password: "0293490239043",
     };
-    const outputSignup = await signup(input);
-    expect(outputSignup.accountId).toBeDefined();
-    const outputGetAccount = await getAccount(outputSignup.accountId);
 
+    const responseSignup = await axios.post(
+      "http://localhost:3000/signup",
+      input
+    );
+    const outputSignup = responseSignup.data;
+    expect(outputSignup.accountId).toBeDefined();
+    const responseGetAccount = await axios.get(
+      `http://localhost:3000/accounts/${outputSignup.accountId}`
+    );
+    const outputGetAccount = responseGetAccount.data;
     expect(outputGetAccount).toEqual({
       account_id: outputSignup.accountId,
       name: input.name,
@@ -111,8 +147,12 @@ describe("signup", () => {
       carPlate: "12883",
       password: "0293490239043",
     };
-    await expect(() => signup(input)).rejects.toThrow(
-      new Error("Invalid car plate")
+
+    const responseSignup = await axios.post(
+      "http://localhost:3000/signup",
+      input
     );
+    expect(responseSignup.status).toBe(422);
+    expect(responseSignup.data.message).toBe("Invalid car plate");
   });
 });
